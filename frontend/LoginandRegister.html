@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login & Register</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: url('https://picsum.photos/1920/1080?blur=2') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      width: 350px;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+    }
+
+    .tabs button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 5px 5px 0 0;
+      color: #fff;
+      transition: background 0.3s;
+    }
+
+    .tabs button.active {
+      background: #ffffff;
+      color: #333;
+    }
+
+    .form {
+      display: none;
+      color: #fff;
+    }
+
+    .form.active {
+      display: block;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+
+    input::placeholder {
+      color: #eee;
+    }
+
+    button.submit {
+      width: 100%;
+      padding: 10px;
+      background: #fff;
+      border: none;
+      color: #333;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: 0.3s ease;
+    }
+
+    button.submit:hover {
+      background: #ddd;
+    }
+
+    h2 {
+      text-align: center;
+      color: #fff;
+    }
+
+    .error {
+      color: yellow;
+      font-size: 0.9em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="tabs">
+      <button id="loginTab" class="active" onclick="showForm('login')">Login</button>
+      <button id="registerTab" onclick="showForm('register')">Register</button>
+    </div>
+
+    <div id="loginForm" class="form active">
+      <h2>Login</h2>
+      <input type="text" id="loginUsername" placeholder="Username" required />
+      <input type="password" id="loginPassword" placeholder="Password" required />
+      <div id="loginError" class="error"></div>
+      <button class="submit" onclick="handleLogin()">Login</button>
+    </div>
+
+    <div id="registerForm" class="form">
+      <h2>Register</h2>
+      <input type="text" id="regUsername" placeholder="Username" required />
+      <input type="text" id="regName" placeholder="Full Name" required />
+      <input type="email" id="regEmail" placeholder="Email" required />
+      <input type="text" id="regMobile" placeholder="Mobile Number" required />
+      <input type="text" id="regAddress" placeholder="Address" required />
+      <input type="password" id="regPassword" placeholder="Password" required />
+      <input type="password" id="regConfirmPassword" placeholder="Confirm Password" required />
+      <div id="regError" class="error"></div>
+      <button class="submit" onclick="handleRegister()">Register</button>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8000"; 
+
+    function showForm(type) {
+      document.getElementById('loginForm').classList.remove('active');
+      document.getElementById('registerForm').classList.remove('active');
+      document.getElementById('loginTab').classList.remove('active');
+      document.getElementById('registerTab').classList.remove('active');
+
+      if (type === 'login') {
+        document.getElementById('loginForm').classList.add('active');
+        document.getElementById('loginTab').classList.add('active');
+      } else {
+        document.getElementById('registerForm').classList.add('active');
+        document.getElementById('registerTab').classList.add('active');
+      }
+    }
+
+    async function handleRegister() {
+      const username = document.getElementById('regUsername').value;
+      const name = document.getElementById('regName').value;
+      const email = document.getElementById('regEmail').value;
+      const mobile = document.getElementById('regMobile').value;
+      const address = document.getElementById('regAddress').value;
+      const password = document.getElementById('regPassword').value;
+      const confirmPassword = document.getElementById('regConfirmPassword').value;
+      const errorDiv = document.getElementById('regError');
+
+      if (password !== confirmPassword) {
+        errorDiv.textContent = "Passwords do not match.";
+        return;
+      }
+
+      errorDiv.textContent = "";
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, name, email, password, mobile, address }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Registration failed');
+
+        alert(data.message);
+        showForm('login');
+      } catch (err) {
+        errorDiv.textContent = err.message;
+      }
+    }
+
+    async function handleLogin() {
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+      const errorDiv = document.getElementById('loginError');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Login failed');
+
+        localStorage.setItem('token', data.token);
+        alert(`${username} has logged in!`);
+        window.location.href = './dashboard.html'; 
+      } catch (err) {
+        errorDiv.textContent = err.message;
+      }
+    }
+  </script>
+
+</body>
+</html>
