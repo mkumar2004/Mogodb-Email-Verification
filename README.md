@@ -20,3 +20,6 @@ HOST = smtp.gmail.com
 SERVICE = gmail
 EMAIL_PORT =587
 SECURE=true
+
+#Instruction 
+npm install mongoose nodemailer nodemon bcryptjs cors express crypto 
