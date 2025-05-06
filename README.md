@@ -21,5 +21,5 @@ SERVICE = gmail
 EMAIL_PORT =587
 SECURE=true
 
-#Instruction 
+#Instruction  These dependenices 
 npm install mongoose nodemailer nodemon bcryptjs cors express crypto 
